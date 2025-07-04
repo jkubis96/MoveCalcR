@@ -1,5 +1,5 @@
 local({
-  packages <- c("readr", "ggplot2", "tidyr", "dplyr", "patchwork")
+  packages <- c("readr", "ggplot2", "tidyr", "dplyr", "patchwork", "signal")
   
   installed <- packages %in% installed.packages()
   if (any(!installed)) {
@@ -263,3 +263,93 @@ set_hour <- function(data, time_col, down = NaN, up = NaN) {
   return(data)
   
 }
+
+
+
+sample_entropy <- function(series, m = 2, r = 0.2) {
+  N <- length(series)
+  sd_series <- sd(series)
+  r_scaled <- r * sd_series
+  
+  phi <- function(m) {
+    x <- embed(series, m)
+    count <- 0
+    for (i in 1:(nrow(x) - 1)) {
+      for (j in (i + 1):nrow(x)) {
+        if (max(abs(x[i, ] - x[j, ])) <= r_scaled) {
+          count <- count + 1
+        }
+      }
+    }
+    return(count)
+  }
+  
+  A <- phi(m + 1)
+  B <- phi(m)
+  if (B == 0 || A == 0) return(Inf)
+  return(-log(A / B))
+}
+
+
+compute_rdi <- function(activity, lambda = 0.005, m = 2, r = 0.2,
+                        flow = 1/2000, fhigh = 1/300, fs = 1) {
+  activity[activity < lambda] <- 0
+  
+  order <- 4
+  wn <- c(flow, fhigh) / (fs / 2)
+  bf <- butter(order, wn, type = "pass")
+  filtered <- filtfilt(bf, activity)
+  
+  rdi <- sample_entropy(filtered, m = m, r = r)
+  
+  return(rdi)
+}
+
+
+
+
+mvd_rdi <- function(data,
+                    animal_col = 'Animal No.',
+                    group_col = 'group',
+                    groups = NaN,
+                    stat_col,
+                    lambda = 0.005, 
+                    m = 2, 
+                    r = 0.2,
+                    flow = 1/2000, 
+                    fhigh = 1/300, 
+                    fs = 1) {
+  
+  
+  full <- data.frame()
+  
+  if (is.nan(groups)[1]) {
+    groups <- unique(data[[group_col]])
+  }
+  
+  
+  for (g in groups) {
+    
+    tmp <- data[data[[group_col]] == g, ]
+    animals <- unique(tmp[[animal_col]])
+    
+    for (f in animals) {
+      
+      activity <- tmp[tmp[[animal_col]] == f, ][[stat_col]]
+      
+      rdi_value <- compute_rdi(as.numeric(activity) ,lambda, m, r, flow, fhigh, fs)
+      
+      full <- rbind(full, data.frame(
+        Group = r,
+        Animal = f,
+        RDI = rdi_value
+        
+      ))
+      
+    }
+  }
+  
+  return(full)
+}
+
+
