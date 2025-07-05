@@ -340,7 +340,7 @@ mvd_rdi <- function(data,
       rdi_value <- compute_rdi(as.numeric(activity) ,lambda, m, r, flow, fhigh, fs)
       
       full <- rbind(full, data.frame(
-        Group = r,
+        Group = g,
         Animal = f,
         RDI = rdi_value
         
