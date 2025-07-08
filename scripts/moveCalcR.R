@@ -1,5 +1,5 @@
 local({
-  packages <- c("readr", "ggplot2", "tidyr", "dplyr", "patchwork", "signal")
+  packages <- c("readr", "ggplot2", "dplyr", "patchwork", "signal")
   
   installed <- packages %in% installed.packages()
   if (any(!installed)) {
@@ -12,13 +12,16 @@ local({
 
 
 
-#' Read MVD File (Main Data)
+#' Read MVD File (Movement Data)
 #'
-#' Reads and processes the main part of an MVD file, skipping metadata and renaming columns if needed.
+#' Reads and processes the MVD file from PhenoMaster device.
 #'
 #' @param path Path to the MVD file (CSV-like with semicolon separators).
 #'
 #' @return A `data.frame` with the main data section of the MVD file.
+#' 
+#' @import readr
+#' 
 #' @export
 read_mvd <- function(path) {
   
@@ -67,13 +70,16 @@ read_mvd <- function(path) {
 }
 
 
-#' Read MVD Metadata
+#' Read MVD (Movement Data) Metadata
 #'
-#' Extracts metadata from the top section of an MVD file.
+#' Extracts metadata from the top section of an MVD file from PhenoMaster device.
 #'
 #' @param path Path to the MVD file.
 #'
 #' @return A `data.frame` containing the metadata section.
+#' 
+#' @import readr
+#' 
 #' @export
 read_mvd_meta <- function(path) {
   
@@ -103,16 +109,17 @@ read_mvd_meta <- function(path) {
 
 
 
-#' Add Group Information to Data
+#' Add animal group affiliation from the metadata to the main dataset.
 #'
 #' Matches animal IDs between data and metadata and adds a group column.
 #'
-#' @param data Main data `data.frame`.
-#' @param metadata Metadata `data.frame`.
+#' @param data MVD table `data.frame`.
+#' @param metadata MVD metadata table `data.frame`.
 #' @param animal_col Column name for animal ID in both `data` and `metadata`.
 #' @param group_col_meta Column name for group information in `metadata`.
 #'
 #' @return Updated `data.frame` with a new `group` column.
+#' 
 #' @export
 group_mdv <- function(data, metadata, animal_col, group_col_meta) {
   
@@ -125,18 +132,22 @@ group_mdv <- function(data, metadata, animal_col, group_col_meta) {
 
 
 
-#' Generate Heatmap with Grouping
+#' Generate a heatmap illustrating movement statistics over time
 #'
 #' Creates a heatmap of animal data over time with an associated group annotation.
 #'
-#' @param data Data `data.frame`.
+#' @param data MVD data `data.frame`.
 #' @param animal_col Column name for animal ID.
 #' @param time_col Column name for time points.
 #' @param stat_col Column name for the statistic/value to plot.
 #' @param group_col Column name for group information.
 #' @param group_sort Optional character vector to define group order.
 #'
-#' @return A `ggplot` patchwork object showing the heatmap and group map.
+#' @return A `ggplot` patchwork object showing the heatmap.
+#' 
+#' @import ggplot2
+#' @import patchwork
+#' 
 #' @export
 mvd_map <- function(data, animal_col, time_col, stat_col, group_col, group_sort = NaN) {
   
@@ -217,7 +228,7 @@ mvd_map <- function(data, animal_col, time_col, stat_col, group_col, group_sort 
 
 
 
-#' Rescale Column to [0, 1]
+#' Rescale column to [0, 1]
 #'
 #' Linearly rescales a numeric column to the range [0, 1].
 #'
@@ -225,6 +236,7 @@ mvd_map <- function(data, animal_col, time_col, stat_col, group_col, group_sort 
 #' @param col The name of the column to rescale.
 #'
 #' @return A `data.frame` with the rescaled column.
+#' 
 #' @export
 rescale <- function(data, col) {
   if (!col %in% names(data)) {
@@ -241,7 +253,7 @@ rescale <- function(data, col) {
 
 
 
-#' Rescale Values by Group
+#' Rescale values by group
 #'
 #' Rescales values in a column within each group to the range [0, 1].
 #'
@@ -250,6 +262,9 @@ rescale <- function(data, col) {
 #' @param group_col Column name of the grouping variable.
 #'
 #' @return A `data.frame` with rescaled values per group.
+#' 
+#' @import dplyr
+#' 
 #' @export
 rescale_by_group <- function(data, value_col, group_col) {
   
@@ -277,7 +292,7 @@ rescale_by_group <- function(data, value_col, group_col) {
 
 
 
-#' Subset Data by Time Range
+#' Subset data by time range
 #'
 #' Trims data to a specified time window.
 #'
@@ -287,6 +302,7 @@ rescale_by_group <- function(data, value_col, group_col) {
 #' @param up Optional: ending time (inclusive).
 #'
 #' @return A `data.frame` with rows between the specified times.
+#' 
 #' @export
 set_hour <- function(data, time_col, down = NaN, up = NaN) {
   
@@ -336,7 +352,7 @@ set_hour <- function(data, time_col, down = NaN, up = NaN) {
 
 
 
-#' Sample Entropy
+#' Sample entropy calculation
 #'
 #' Calculates the sample entropy of a numeric time series.
 #'
@@ -345,6 +361,7 @@ set_hour <- function(data, time_col, down = NaN, up = NaN) {
 #' @param r Tolerance as a proportion of the standard deviation.
 #'
 #' @return Numeric value representing sample entropy. Returns `Inf` if undefined.
+#' 
 #' @export
 sample_entropy <- function(series, m = 2, r = 0.2) {
   N <- length(series)
@@ -371,6 +388,7 @@ sample_entropy <- function(series, m = 2, r = 0.2) {
 }
 
 
+
 #' Compute Regularity Disruption Index (RDI)
 #'
 #' Calculates the Regularity Disruption Index (RDI) from time series activity data 
@@ -385,9 +403,10 @@ sample_entropy <- function(series, m = 2, r = 0.2) {
 #' @param fs Numeric; sampling frequency. Default is 1.
 #'
 #' @return A single numeric value representing the RDI.
+#' 
+#' @import signal
+#' 
 #' @export
-#'
-#' @examples
 compute_rdi <- function(activity, lambda = 0.005, m = 2, r = 0.2,
                         flow = 1/2000, fhigh = 1/300, fs = 1) {
   activity[activity < lambda] <- 0
@@ -404,15 +423,15 @@ compute_rdi <- function(activity, lambda = 0.005, m = 2, r = 0.2,
 
 
 
-#' Calculate RDI for Each Animal in Multiple Groups
+#' Calculate RDI of each animal in MVD data
 #'
 #' Computes the RDI for individual animals across different experimental groups.
 #'
-#' @param data A data frame containing the activity data.
-#' @param animal_col Character; name of the column indicating animal ID. Default is "Animal No.".
-#' @param group_col Character; name of the column indicating experimental group. Default is "group".
+#' @param data A data frame (MVD) containing the activity data.
+#' @param animal_col Name of the column indicating animal ID. Default is "Animal No.".
+#' @param group_col Name of the column indicating experimental group. Default is "group".
 #' @param groups Optional vector of groups to include; if not specified (default is `NaN`), all groups are used.
-#' @param stat_col Character; name of the column with activity values for RDI calculation.
+#' @param stat_col Name of the column with activity values for RDI calculation.
 #' @param lambda Threshold below which activity is set to zero. Default is 0.005.
 #' @param m Embedding dimension for sample entropy. Default is 2.
 #' @param r Tolerance parameter for sample entropy. Default is 0.2.
@@ -420,10 +439,9 @@ compute_rdi <- function(activity, lambda = 0.005, m = 2, r = 0.2,
 #' @param fhigh High cutoff frequency for the filter. Default is 1/300.
 #' @param fs Sampling frequency. Default is 1.
 #'
-#' @return A data frame with columns: Group, Animal, RDI.
+#' @return A data frame with columns: group, animal, RDI.
+#' 
 #' @export
-#'
-#' @examples
 mvd_rdi <- function(data,
                     animal_col = 'Animal No.',
                     group_col = 'group',
@@ -456,8 +474,8 @@ mvd_rdi <- function(data,
       rdi_value <- compute_rdi(as.numeric(activity) ,lambda, m, r, flow, fhigh, fs)
       
       full <- rbind(full, data.frame(
-        Group = g,
-        Animal = f,
+        group = g,
+        animal = f,
         RDI = rdi_value
         
       ))
@@ -471,17 +489,17 @@ mvd_rdi <- function(data,
 
 
 
-#' Compute RDI Over Time Intervals
+#' Compute RDI over time intervals
 #'
 #' Calculates the RDI for each animal within specified time intervals.
 #'
 #' @param data A data frame containing the time series data.
-#' @param interval Integer; number of time points per interval (e.g., 60). Default is 60.
-#' @param time_col Character; name of the column representing time. Default is "Time".
-#' @param animal_col Character; name of the column indicating animal ID. Default is "Animal No.".
-#' @param group_col Character; name of the column indicating experimental group. Default is "group".
+#' @param interval Number of time points per interval (e.g., 60). Default is 60.
+#' @param time_col Name of the column representing time. Default is "Time".
+#' @param animal_col Name of the column indicating animal ID. Default is "Animal No.".
+#' @param group_col Name of the column indicating experimental group. Default is "group".
 #' @param groups Optional vector of groups to include; if not specified, all groups are included.
-#' @param stat_col Character; name of the column with activity values for RDI calculation.
+#' @param stat_col Name of the column with activity values for RDI calculation.
 #' @param lambda Threshold below which activity is set to zero. Default is 0.005.
 #' @param m Embedding dimension for sample entropy. Default is 2.
 #' @param r Tolerance parameter for sample entropy. Default is 0.2.
@@ -489,10 +507,9 @@ mvd_rdi <- function(data,
 #' @param fhigh High cutoff frequency for the filter. Default is 1/300.
 #' @param fs Sampling frequency. Default is 1.
 #'
-#' @return A data frame with columns: Group, Animal, RDI, interval.
+#' @return A data frame with columns: group, animal, RDI, interval.
+#' 
 #' @export
-#'
-#' @examples
 mvd_rdi_interval <- function(data,
                              interval = 60,
                              time_col = 'Time',

@@ -1,15 +1,15 @@
 
-source('moveCalcR.R')
+source('https://raw.githubusercontent.com/jkubis96/MoveCalcR/refs/heads/main/scripts/moveCalcR.R')
 
 # loading scripts for statistics and visualization --> https://github.com/jkubis96/JStatML-R
 source("https://raw.githubusercontent.com/jkubis96/JStatML-R/main/scripts/statML-R.R")
 
 
 
-example_data <- read_mvd(path = 'data/example_data.csv')
+example_data <- read_mvd(path = 'https://raw.githubusercontent.com/jkubis96/MoveCalcR/refs/heads/main/data/example_data.csv')
 
 
-example_metadata <- read_mvd_meta(path = 'data/example_data.csv')
+example_metadata <- read_mvd_meta(path = 'https://raw.githubusercontent.com/jkubis96/MoveCalcR/refs/heads/main/data/example_data.csv')
 
 
 
@@ -31,7 +31,7 @@ plot_movment <- mvd_map(data, animal_col = "Animal No.",
 
 plot_movment
 
-ggsave('movement_plot.png', plot_movment, dpi = 300, width = 8, height = 4)
+ggsave('../fig/movement_plot.png', plot_movment, dpi = 300, width = 8, height = 4)
 
 
   
@@ -49,7 +49,7 @@ plot_movment_rescaled <- mvd_map(rescaled_data, animal_col = "Animal No.",
 
 plot_movment_rescaled
 
-ggsave('movement_plot.png', plot_movment_rescaled, dpi = 300, width = 8, height = 4)
+ggsave('../fig/movement_plot_rescaled.png', plot_movment_rescaled, dpi = 300, width = 8, height = 4)
 
 
 
@@ -89,7 +89,7 @@ results <- two_groups_analysis(value_column = 'RDI',
   
 results@bar_plot
 
-ggsave('total_time_RDI.png', results@bar_plot, dpi = 300, width = 8, height = 4)
+ggsave('../fig/total_time_RDI.png', results@bar_plot, dpi = 300, width = 8, height = 4)
 
   
   
@@ -128,6 +128,6 @@ interval_rdi_plot <- multi_var_groups_analysis(interval_rdi,
 
 
 
-ggsave('interval_time_RDI.jpg', interval_rdi_plot@plot, dpi = 300, width = 8, height = 4)
+ggsave('../fig/interval_time_RDI.jpg', interval_rdi_plot@plot, dpi = 300, width = 8, height = 4)
 
   
