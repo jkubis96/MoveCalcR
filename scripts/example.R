@@ -70,7 +70,7 @@ full_time_rdi = mvd_rdi(data,
 
   
 results <- two_groups_analysis(value_column = 'RDI', 
-                               grouping_column = 'Group', 
+                               grouping_column = 'group', 
                                data = full_time_rdi, 
                                bar_queue = c('HEALTHY', 'DISEASE'), 
                                x_label = 'Group', 
@@ -118,7 +118,7 @@ interval_rdi <- mvd_rdi_interval(data,
 interval_rdi_plot <- multi_var_groups_analysis(interval_rdi,
                                    stat_col = "RDI", 
                                    interval_col = 'interval', 
-                                   group_col = 'Group',
+                                   group_col = 'group',
                                    parametric = TRUE,
                                    paired = FALSE,
                                    adj = NA,
@@ -127,6 +127,7 @@ interval_rdi_plot <- multi_var_groups_analysis(interval_rdi,
 
 
 
+interval_rdi_plot@plot
 
 ggsave('../fig/interval_time_RDI.jpg', interval_rdi_plot@plot, dpi = 300, width = 8, height = 4)
 
